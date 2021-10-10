@@ -17,8 +17,9 @@ const Profile  = ()=>{
            //console.log(result)
          
             setProfile(result)
+            setShowFollow(state?!state.following.includes(userid):true)
        })
-    },[])
+    },[userid])
 
 
     const followUser = ()=>{
@@ -36,6 +37,7 @@ const Profile  = ()=>{
         
             dispatch({type:"UPDATE",payload:{following:data.following,followers:data.followers}})
              localStorage.setItem("user",JSON.stringify(data))
+             console.log(data)
              setProfile((prevState)=>{
                  return {
                      ...prevState,

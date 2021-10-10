@@ -28,7 +28,7 @@ const Home  = ()=>{
               })
           }).then(res=>res.json())
           .then(result=>{
-                   //   console.log(result)
+             console.log(result)
             const newData = data.map(item=>{
                 if(item._id==result._id){
                     return result
@@ -36,7 +36,9 @@ const Home  = ()=>{
                     return item
                 }
             })
+            console.log(data)
             setData(newData)
+            console.log(newData)
           }).catch(err=>{
               console.log(err)
           })
@@ -153,6 +155,7 @@ const Home  = ()=>{
                                 <form onSubmit={(e)=>{
                                     e.preventDefault()
                                     makeComment(e.target[0].value,item._id)
+                                    e.target[0].value=""
                                 }}>
                                   <input type="text" placeholder="add a comment" />  
                                 </form>

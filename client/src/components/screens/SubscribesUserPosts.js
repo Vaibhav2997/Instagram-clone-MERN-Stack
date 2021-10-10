@@ -111,7 +111,9 @@ const Home  = ()=>{
     }
    return (
        <div className="home">
+
            {
+               data.length?
                data.map(item=>{
                    return(
                        <div className="card home-card" key={item._id}>
@@ -153,6 +155,7 @@ const Home  = ()=>{
                                 <form onSubmit={(e)=>{
                                     e.preventDefault()
                                     makeComment(e.target[0].value,item._id)
+                                    e.target[0].value=""
                                 }}>
                                   <input type="text" placeholder="add a comment" />  
                                 </form>
@@ -161,9 +164,9 @@ const Home  = ()=>{
                         </div> 
                    )
                })
-           }
+           
           
-          
+          :<h2>Nothing to show here !!!</h2>}
        </div>
    )
 }

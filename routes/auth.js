@@ -4,20 +4,52 @@ const mongoose = require('mongoose')
 const User = mongoose.model("User")
 const crypto = require('crypto')
 const bcrypt = require('bcryptjs')
+const ngrok = require('ngrok');
 const jwt = require('jsonwebtoken')
 const {JWT_SECRET} = require('../config/keys')
 const requireLogin = require('../middleware/requireLogin')
 const nodemailer = require('nodemailer')
 const sendgridTransport = require('nodemailer-sendgrid-transport')
-const {SENDGRID_API,EMAIL} = require('../config/keys')
+const {SENDGRID_API_KEY,EMAIL} = require('../config/keys')
 //
 
 
 const transporter = nodemailer.createTransport(sendgridTransport({
     auth:{
-        api_key:SENDGRID_API
+        api_key:SENDGRID_API_KEY
     }
-}))
+}));
+
+const urlink=async function() {
+    const url = await ngrok.connect({
+        proto:'http',
+        addr:3000,
+        host_header:'localhost:3000',
+    });
+
+    //console.log(link)
+    return url;
+  };
+
+//  async function getlink(){
+//     let v="abc";
+
+//     try{
+
+//         v=await urlink()
+//     }
+//     catch(err){
+//         console.log(err)
+//     }
+
+//     return v;
+
+//  }
+
+ 
+
+
+  
 
 router.post('/signup',(req,res)=>{
   const {name,email,password,pic} = req.body 
@@ -40,12 +72,13 @@ router.post('/signup',(req,res)=>{
     
             user.save()
             .then(user=>{
-                // transporter.sendMail({
-                //     to:user.email,
-                //     from:"no-reply@insta.com",
-                //     subject:"signup success",
-                //     html:"<h1>welcome to instagram</h1>"
-                // })
+                transporter.sendMail({
+                    to:user.email,
+                    from:EMAIL,
+                    subject:"signup success",
+                    html:"<h1>welcome to instagram</h1>"
+                })
+
                 res.json({message:"saved successfully"})
             })
             .catch(err=>{
@@ -101,19 +134,44 @@ router.post('/reset-password',(req,res)=>{
                  return res.status(422).json({error:"User dont exists with that email"})
              }
              user.resetToken = token
-             user.expireToken = Date.now() + 3600000
-             user.save().then((result)=>{
-                 transporter.sendMail({
-                     to:user.email,
-                     from:"no-replay@insta.com",
-                     subject:"password reset",
-                     html:`
-                     <p>You requested for password reset</p>
-                     <h5>click in this <a href="${EMAIL}/reset/${token}">link</a> to reset password</h5>
-                     `
-                 })
-                 res.json({message:"check your email"})
-             })
+             user.expireToken = Date.now() + 3600000;
+
+
+            (async function(){
+
+                let reseturl="";
+
+                try{
+
+                    reseturl=await urlink();
+                    const link =`${reseturl}/reset/${token}`;
+                    console.log(link)
+                    user.save().then((result)=>{
+                        transporter.sendMail({
+                            to:user.email,
+                            from:EMAIL,
+                            subject:"password reset",
+                            html:`
+                            <p>You requested for password reset </p>
+                            <h5>click on this <a href="${link}">link</a> to reset password</h5>
+                            `
+                        })
+                        .catch(err=>{
+                            console.log(err)
+                        })
+                        res.json({message:"check your email"})
+                    })
+                }
+
+                catch(err){
+                    console.log(err)
+                }
+
+                
+
+             
+            })();
+           
 
          })
      })
